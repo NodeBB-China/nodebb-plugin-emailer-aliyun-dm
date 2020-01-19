@@ -1,29 +1,56 @@
 {
-  "name": "nodebb-plugin-emailer-mailgun",
-  "version": "1.0.3",
-  "description": "An emailer plugin for NodeBB using Mailgun as a third party service",
+  "name": "nodebb-plugin-emailer-aliyun-dm",
+  "version": "1.0.0",
+  "description": "能够使 NodeBB 使用 阿里云邮件推送作为发信服务。",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/julianlam/nodebb-plugin-emailer-mailgun"
+    "url": "https://github.com/nodebb-china/nodebb-plugin-emailer-aliyun-dm"
   },
   "keywords": [
     "nodebb",
     "plugin",
     "emailer",
-    "mailgun"
+    "directmail",
+    "aliyun"
   ],
-  "author": "Julian Lam <julian@designcreateplay.com>",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "author": "a632079 <a632079@qq.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/julianlam/nodebb-plugin-emailer-mailgun/issues"
+    "url": "https://github.com/nodebb-china/nodebb-plugin-emailer-aliyun-dm/issues"
   },
-  "homepage": "https://github.com/julianlam/nodebb-plugin-emailer-mailgun",
+  "homepage": "https://github.com/nodebb-china/nodebb-plugin-emailer-aliyun-dm",
   "dependencies": {
-    "mailgun-js": "^0.7.7",
+    "@alicloud/dm-2015-11-23": "^1.0.0",
+    "@alicloud/dm-2017-06-22": "^1.0.0",
     "path": "~0.4.9"
   },
+  "devDependencies": {
+    "@commitlint/cli": "^8.0.0",
+    "@commitlint/config-angular": "^7.1.2",
+    "eslint": "^6.2.2 ",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-html": "^6.0.0",
+    "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "husky": "^2.4.0",
+    "lint-staged": "^8.2.0"
+  },
   "nbbpm": {
-    "compatibility": "^1.11"
+    "compatibility": "^1.13"
   }
 }

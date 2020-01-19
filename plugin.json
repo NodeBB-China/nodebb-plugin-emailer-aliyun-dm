@@ -1,8 +1,8 @@
 {
-    "id": "nodebb-plugin-emailer-mailgun",
-    "name": "Emailer (Mailgun)",
-    "description": "Mailgun Emailer for NodeBB",
-    "url": "https://github.com/julianlam/nodebb-plugin-emailer-mailgun",
+    "id": "nodebb-plugin-emailer-aliyun-dm",
+    "name": "邮件服务（阿里云邮件推送）",
+    "description": "阿里云邮件推送服务的 NodeBB 实现。",
+    "url": "https://github.com/nodebb-china/nodebb-plugin-emailer-aliyun-dm",
     "library": "./index.js",
     "templates": "templates",
     "hooks": [

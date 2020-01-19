@@ -1,69 +1,76 @@
-var	fs = require('fs'),
-	path = require('path'),
+const winston = require.main.require('winston')
+const Meta = require.main.require('./src/meta')
+const Emailer = {}
+const DMClientv2017 = require('@alicloud/dm-2017-06-22')
+const DMClientv2015 = require('@alicloud/dm-2015-11-23')
+let server
+let accountName
+Emailer.init = async function (params) {
+  function render (req, res) {
+    res.render('admin/plugins/emailer-aliyun-dm', {})
+  }
 
-	winston = require.main.require('winston'),
-	Meta = require.main.require('./src/meta'),
+  const settings = await Meta.settings.get('aliyun-dm')
+  if (settings && settings.accessKeyId && settings.accessKeySecret && settings.accountName) {
+    if (settings.endpoint && settings.endpoint !== 'https://dm.aliyuncs.com') {
+      server = new DMClientv2017({
+        endpoint: settings.endpoint,
+        accessKeyId: settings.accessKeyId,
+        accessKeySecret: settings.accessKeySecret
+      })
+    } else {
+      server = new DMClientv2015({
+        endpoint: 'https://dm.aliyuncs.com',
+        accessKeyId: settings.accessKeyId,
+        accessKeySecret: settings.accessKeySecret
+      })
+    }
+    accountName = settings.accountName
+  } else {
+    winston.error('[plugins/emailer-aliyun-dm] 插件未配置！')
+  }
 
-	Emailer = {},
-	Mailgun = require('mailgun-js'),
-	server;
+  params.router.get('/admin/plugins/emailer-aliyun-dm', params.middleware.admin.buildHeader, render)
+  params.router.get('/api/admin/plugins/emailer-aliyun-dm', render)
+}
 
-Emailer.init = function(params, callback) {
-	function render(req, res, next) {
-		res.render('admin/plugins/emailer-mailgun', {});
-	}
-
-	Meta.settings.get('mailgun', function(err, settings) {
-		if (!err && settings && settings.apiKey && settings.domain) {
-			server = Mailgun({
-				apiKey: settings.apiKey,
-				domain: settings.domain
-			});
-		} else {
-			winston.error('[plugins/emailer-mailgun] API key or Domain not set!');
-		}
-	});
-
-	params.router.get('/admin/plugins/emailer-mailgun', params.middleware.admin.buildHeader, render);
-	params.router.get('/api/admin/plugins/emailer-mailgun', render);
-
-	callback();
-};
-
-Emailer.send = function(data, callback) {
-	if (!server) {
-		winston.error('[emailer.mailgun] Mailgun is not set up properly!')
-		return callback(null, data);
-	}
-
-	server.messages().send({
-		to: data.to,
-		subject: data.subject,
-		from: data.from,
-		html: data.html,
-		text: data.plaintext
-	}, function (err, body) {
-		if (!err) {
-			winston.verbose('[emailer.mailgun] Sent `' + data.template + '` email to uid ' + data.uid);
-		} else {
-			winston.warn('[emailer.mailgun] Unable to send `' + data.template + '` email to uid ' + data.uid + '!!');
-			winston.error('[emailer.mailgun] (' + err.message + ')');
-		}
-
-		return callback(err, data);
-	});
-};
+Emailer.send = async function (data) {
+  if (!server) {
+    winston.error('[emailer.aliyun-dm] 阿里云邮件推送服务尚未配置就绪！')
+    return data
+  }
+  try {
+    // console.log(data)
+    await server.singleSendMail({
+      AccountName: accountName,
+      AddressType: 1,
+      ReplyToAddress: true,
+      ToAddress: data.to,
+      Subject: data.subject,
+      FromAlias: data.from_name,
+      HtmlBody: data.html,
+      TextBody: data.plaintext
+    })
+  } catch (err) {
+    if (!err) {
+      winston.verbose('[emailer.aliyun-dm] 发送 `' + data.template + '` 邮件给用户 ' + data.uid)
+    } else {
+      winston.warn('[emailer.aliyun-dm] 无法发送`' + data.template + '` 邮件给用户 ' + data.uid + '！！')
+      winston.error('[emailer.aliyun-dm] (' + err.message + ')')
+    }
+    throw err
+  }
+}
 
 Emailer.admin = {
-	menu: function(custom_header, callback) {
-		custom_header.plugins.push({
-			"route": '/plugins/emailer-mailgun',
-			"icon": 'fa-envelope-o',
-			"name": 'Emailer (MailGun)'
-		});
+  menu: async function (customHeader) {
+    customHeader.plugins.push({
+      'route': '/plugins/emailer-aliyun-dm',
+      'icon': 'fa-envelope-o',
+      'name': '发信服务（阿里云邮件推送）'
+    })
+    return customHeader
+  }
+}
 
-		callback(null, custom_header);
-	}
-};
-
-module.exports = Emailer;
+module.exports = Emailer
